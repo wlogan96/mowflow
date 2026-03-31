@@ -1,0 +1,25 @@
+{
+  "name": "MowFlow - Elevate Grounds Company",
+  "short_name": "MowFlow",
+  "description": "Daily revenue and cash flow tracker for Elevate Grounds Company",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f5efe6",
+  "theme_color": "#f5efe6",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["business", "finance", "productivity"]
+}
