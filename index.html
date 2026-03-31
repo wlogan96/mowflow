@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#f5efe6">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="MowFlow">
+<title>MowFlow</title>
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&family=Playfair+Display:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cream:      #faf6f0;
+  --cream-2:    #f5efe4;
+  --cream-3:    #ede4d6;
+  --parchment:  #e8dece;
+  --sage:       #7a9e7e;
+  --sage-lt:    #c8ddc9;
+  --sage-dk:    #4a7050;
+  --sage-deep:  #2d5230;
+  --terra:      #c46b3a;
+  --terra-lt:   #f5dfd0;
+  --terra-dk:   #8f4520;
+  --gold:       #c49a3a;
+  --gold-lt:    #f5ead0;
+  --sky:        #5b8fa8;
+  --sky-lt:     #ddedf5;
+  --plum:       #7a5580;
+  --plum-lt:    #ead5f0;
+  --ink:        #2c2416;
+  --ink-2:      #5c4e3a;
+  --ink-3:      #9a8a76;
+  --ink-4:      #c4b8a8;
+  --white:      #ffffff;
+  --radius-xl:  20px;
+  --radius-lg:  16px;
+  --radius-md:  12px;
+  --radius-sm:  8px;
+  --tab-h:      68px;
+  --safe-bot:   env(safe-area-inset-bottom, 0px);
+  --shadow-sm:  0 1px 4px rgba(44,36,22,.07);
+  --shadow-md:  0 3px 12px rgba(44,36,22,.10);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; overflow: hidden; background: var(--cream-2); }
+body { font-family: 'Nunito', sans-serif; color: var(--ink); }
+
+/* ── Layout ── */
+#app { display: flex; flex-direction: column; height: 100dvh; }
+
+#header {
+  background: var(--cream);
+  padding: 16px 20px 14px;
+  padding-top: max(16px, env(safe-area-inset-top, 16px));
+  border-bottom: 1.5px solid var(--parchment);
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0;
+}
+.header-left h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 24px; font-weight: 600;
+  color: var(--sage-deep);
+  letter-spacing: -0.3px;
+  line-height: 1;
+}
+.header-left .tagline {
+  font-size: 11px; color: var(--ink-3);
+  margin-top: 3px; font-weight: 500;
+  letter-spacing: 0.04em;
+}
+.month-pill {
+  background: var(--sage-dk);
+  color: var(--sage-lt);
+  font-size: 12px; font-weight: 700;
+  padding: 5px 13px; border-radius: 20px;
+  letter-spacing: 0.03em;
+}
+
+#content {
+  flex: 1; overflow-y: auto;
+  background: var(--cream-2);
+  -webkit-overflow-scrolling: touch;
+}
+.page { display: none; padding: 16px 16px calc(var(--tab-h) + var(--safe-bot) + 24px); }
+.page.active { display: block; }
+
+/* ── Bottom Nav ── */
+#nav {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  height: calc(var(--tab-h) + var(--safe-bot));
+  background: var(--cream);
+  border-top: 1.5px solid var(--parchment);
+  display: flex; z-index: 100;
+  padding-bottom: var(--safe-bot);
+}
+.nav-btn {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 4px;
+  border: none; background: none;
+  color: var(--ink-4); cursor: pointer;
+  padding: 8px 0; transition: color .2s;
+  font-family: 'Nunito', sans-serif;
+}
+.nav-btn.active { color: var(--sage-dk); }
+.nav-btn .nav-dot {
+  width: 4px; height: 4px; border-radius: 50%;
+  background: var(--sage-dk);
+  opacity: 0; transition: opacity .2s;
+  margin-bottom: -2px;
+}
+.nav-btn.active .nav-dot { opacity: 1; }
+.nav-btn svg { width: 22px; height: 22px; stroke-width: 1.8; }
+.nav-btn span { font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+
+/* ── Cards ── */
+.card {
+  background: var(--white);
+  border-radius: var(--radius-xl);
+  padding: 18px 18px;
+  margin-bottom: 14px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(196,184,168,.3);
+}
+.card-title {
+  font-size: 11px; font-weight: 700;
+  color: var(--ink-3);
+  text-transform: uppercase; letter-spacing: 0.09em;
+  margin-bottom: 14px;
+}
+
+/* ── Metrics ── */
+.metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+.metric {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(196,184,168,.3);
+}
+.metric.full { grid-column: 1/-1; }
+.metric-lbl {
+  font-size: 10px; font-weight: 700;
+  color: var(--ink-3); text-transform: uppercase;
+  letter-spacing: 0.07em; margin-bottom: 6px;
+}
+.metric-val {
+  font-family: 'Playfair Display', serif;
+  font-size: 24px; font-weight: 500;
+  line-height: 1;
+}
+
+/* ── Form ── */
+.field { margin-bottom: 13px; }
+.field label {
+  display: block; font-size: 11px; font-weight: 700;
+  color: var(--ink-3); text-transform: uppercase;
+  letter-spacing: 0.07em; margin-bottom: 6px;
+}
+.field input, .field select, .field textarea {
+  width: 100%; padding: 12px 14px;
+  font-size: 16px; font-family: 'Nunito', sans-serif;
+  border: 1.5px solid var(--cream-3);
+  border-radius: var(--radius-md);
+  background: var(--cream);
+  color: var(--ink); outline: none;
+  transition: border-color .15s, background .15s;
+  -webkit-appearance: none; appearance: none;
+}
+.field input:focus, .field select:focus {
+  border-color: var(--sage);
+  background: var(--white);
+}
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+
+/* ── Buttons ── */
+.btn {
+  display: block; width: 100%;
+  padding: 14px; font-size: 15px; font-weight: 700;
+  border-radius: var(--radius-lg); border: none;
+  cursor: pointer; font-family: 'Nunito', sans-serif;
+  letter-spacing: 0.02em;
+  transition: transform .1s, opacity .15s;
+}
+.btn:active { transform: scale(0.97); opacity: .88; }
+.btn-primary { background: var(--sage-dk); color: #fff; }
+.btn-secondary { background: var(--cream-3); color: var(--ink-2); }
+.btn-terra { background: var(--terra); color: #fff; }
+.btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
+.btn-sm {
+  padding: 9px 16px; font-size: 13px;
+  width: auto; display: inline-block;
+}
+
+/* ── Worker rows ── */
+.worker-header {
+  display: grid; grid-template-columns: 2fr 1fr 1fr 38px; gap: 8px;
+  margin-bottom: 6px;
+}
+.worker-lbl {
+  font-size: 10px; font-weight: 700; color: var(--ink-3);
+  text-transform: uppercase; letter-spacing: .07em;
+}
+.worker-row {
+  display: grid; grid-template-columns: 2fr 1fr 1fr 38px;
+  gap: 8px; align-items: center; margin-bottom: 8px;
+}
+.worker-row input {
+  font-size: 15px; padding: 10px 12px;
+  border: 1.5px solid var(--cream-3);
+  border-radius: var(--radius-md);
+  background: var(--cream); color: var(--ink);
+  font-family: 'Nunito', sans-serif;
+  width: 100%; outline: none;
+  transition: border-color .15s;
+  -webkit-appearance: none;
+}
+.worker-row input:focus { border-color: var(--sage); background: var(--white); }
+.rem-btn {
+  width: 38px; height: 42px;
+  border: 1.5px solid var(--cream-3);
+  border-radius: var(--radius-md);
+  background: var(--cream-2); color: var(--ink-3);
+  font-size: 15px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .15s, color .15s;
+}
+.rem-btn:active { background: var(--terra-lt); color: var(--terra-dk); }
+
+/* ── Allocation rows ── */
+.alloc-item {
+  padding: 13px 15px;
+  border-radius: var(--radius-lg);
+  background: var(--cream-2);
+  border: 1px solid var(--cream-3);
+  margin-bottom: 8px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.alloc-left { flex: 1; min-width: 0; padding-right: 12px; }
+.alloc-lbl { font-size: 13px; font-weight: 600; color: var(--ink-2); }
+.alloc-sub { font-size: 11px; color: var(--ink-3); margin-top: 2px; }
+.alloc-track { height: 5px; background: var(--parchment); border-radius: 3px; margin-top: 7px; overflow: hidden; }
+.alloc-fill { height: 5px; border-radius: 3px; transition: width .4s ease; }
+.alloc-right { text-align: right; flex-shrink: 0; }
+.alloc-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 16px; font-weight: 500; color: var(--ink);
+}
+.alloc-pct { font-size: 11px; color: var(--ink-3); margin-top: 1px; }
+
+.takehome-box {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 16px 18px;
+  background: var(--sage-deep);
+  border-radius: var(--radius-lg);
+  margin-top: 12px;
+}
+.takehome-box .th-lbl { font-size: 13px; font-weight: 700; color: var(--sage-lt); }
+.takehome-box .th-val {
+  font-family: 'Playfair Display', serif;
+  font-size: 26px; font-weight: 500; color: #fff;
+}
+
+/* ── Alerts ── */
+.tip-box {
+  background: var(--sage-lt); border-radius: var(--radius-md);
+  padding: 11px 14px; font-size: 12px; font-weight: 600;
+  color: var(--sage-deep); margin-top: 10px; line-height: 1.5;
+}
+.warn-box {
+  background: var(--terra-lt); border-radius: var(--radius-md);
+  padding: 11px 14px; font-size: 12px; font-weight: 600;
+  color: var(--terra-dk); margin-top: 10px; line-height: 1.5;
+}
+
+/* ── History entries ── */
+.hist-entry {
+  background: var(--white); border-radius: var(--radius-xl);
+  padding: 16px 18px; margin-bottom: 10px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(196,184,168,.3);
+}
+.hist-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+.hist-date { font-size: 13px; font-weight: 700; color: var(--ink-2); }
+.hist-notes { font-size: 12px; color: var(--ink-3); margin-top: 2px; line-height: 1.4; }
+.hist-rev {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px; font-weight: 500; color: var(--sky);
+  text-align: right;
+}
+.hist-pills { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; justify-content: flex-end; }
+.badge {
+  font-size: 11px; font-weight: 700; padding: 4px 10px;
+  border-radius: 20px; letter-spacing: 0.03em;
+}
+.b-ok   { background: var(--sage-lt);  color: var(--sage-deep); }
+.b-warn { background: var(--gold-lt);  color: var(--terra-dk); }
+.b-loss { background: var(--terra-lt); color: var(--terra-dk); }
+.hist-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--cream-3); }
+.hist-stat { font-size: 10px; font-weight: 700; color: var(--ink-3); text-transform: uppercase; letter-spacing: .06em; }
+.hist-stat strong { display: block; font-size: 14px; font-weight: 700; color: var(--ink); margin-top: 2px; font-family: 'Nunito', sans-serif; }
+
+/* ── Setup ── */
+.setup-group {
+  font-size: 11px; font-weight: 700; color: var(--ink-3);
+  text-transform: uppercase; letter-spacing: .09em;
+  margin: 20px 0 8px;
+  display: flex; align-items: center; gap: 8px;
+}
+.setup-group::after { content: ''; flex: 1; height: 1px; background: var(--parchment); }
+.oh-live {
+  background: var(--sage-deep); color: var(--sage-lt);
+  border-radius: var(--radius-lg); padding: 13px 16px;
+  font-size: 13px; display: flex; gap: 20px;
+  margin-top: 8px; flex-wrap: wrap;
+}
+.oh-live strong { color: #fff; font-size: 15px; display: block; margin-top: 2px; font-family: 'Playfair Display', serif; }
+.save-toast {
+  text-align: center; font-size: 13px; font-weight: 700;
+  color: var(--sage-dk); margin-top: 10px; display: none;
+}
+
+/* ── Chart ── */
+.chart-wrap { position: relative; height: 200px; margin: 14px 0 6px; }
+
+/* ── Empty state ── */
+.empty-state {
+  text-align: center; padding: 48px 24px;
+  color: var(--ink-3);
+}
+.empty-icon {
+  width: 64px; height: 64px;
+  background: var(--cream-3);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 16px;
+  font-size: 28px;
+}
+.empty-state p { font-size: 15px; font-weight: 600; color: var(--ink-2); margin-bottom: 6px; }
+.empty-state small { font-size: 13px; }
+
+/* ── Section divider ── */
+.divider { height: 1px; background: var(--cream-3); margin: 14px 0; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div id="header">
+    <div class="header-left">
+      <svg width="180" height="40" viewBox="0 0 180 40" xmlns="http://www.w3.org/2000/svg">
+  <text x="0" y="30" font-family="Georgia,serif" font-size="28" font-weight="600" fill="#2d5230">MowFlow</text>
+</svg>
+      <div class="tagline">Elevate Grounds Company</div>
+    </div>
+    <div class="month-pill" id="month-pill">— —</div>
+  </div>
+
+  <div id="content">
+
+    <!-- ── DAILY ── -->
+    <div class="page active" id="page-daily">
+      <div class="metrics">
+        <div class="metric">
+          <div class="metric-lbl">Month revenue</div>
+          <div class="metric-val" style="color:var(--sky)" id="m-rev">$0</div>
+        </div>
+        <div class="metric">
+          <div class="metric-lbl">Labor + WC</div>
+          <div class="metric-val" style="color:var(--gold)" id="m-labor">$0</div>
+        </div>
+        <div class="metric">
+          <div class="metric-lbl">Overhead</div>
+          <div class="metric-val" style="color:var(--terra)" id="m-oh">$0</div>
+        </div>
+        <div class="metric">
+          <div class="metric-lbl">Tax reserve</div>
+          <div class="metric-val" style="color:var(--plum)" id="m-tax">$0</div>
+        </div>
+        <div class="metric full">
+          <div class="metric-lbl">Net profit this month</div>
+          <div class="metric-val" id="m-net">$0</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Log today's work</div>
+        <div class="row2">
+          <div class="field"><label>Date</label><input type="date" id="e-date"></div>
+          <div class="field"><label>Revenue ($)</label><input type="number" id="e-rev" placeholder="0.00" inputmode="decimal"></div>
+        </div>
+        <div class="field"><label>Job notes</label><input type="text" id="e-notes"></div>
+
+        <div class="divider"></div>
+        <div class="card-title" style="margin-bottom:10px;">Your crew today</div>
+        <div class="worker-header">
+          <div class="worker-lbl">Name</div>
+          <div class="worker-lbl">Hours</div>
+          <div class="worker-lbl">$ / hr</div>
+          <div></div>
+        </div>
+        <div id="worker-list"></div>
+        <button class="btn btn-secondary btn-sm" onclick="addWorker()" style="margin-bottom:4px;">+ Add worker</button>
+
+        <div class="btn-row">
+          <button class="btn btn-secondary" onclick="previewAlloc()">Preview split</button>
+          <button class="btn btn-primary" onclick="saveEntry()">Save day</button>
+        </div>
+      </div>
+
+      <div id="preview-card" style="display:none;">
+        <div class="card">
+          <div class="card-title">How to split today's revenue</div>
+          <div id="preview-rows"></div>
+          <div class="takehome-box">
+            <span class="th-lbl">Your take-home</span>
+            <span class="th-val" id="preview-th">$0</span>
+          </div>
+          <div id="preview-tip"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ALLOCATION ── -->
+    <div class="page" id="page-alloc">
+      <div class="card">
+        <div class="card-title">Revenue calculator</div>
+        <div class="row2">
+          <div class="field"><label>Revenue ($)</label><input type="number" id="a-rev" placeholder="0.00" inputmode="decimal" oninput="updAlloc()"></div>
+          <div class="field"><label>Period</label>
+            <select id="a-period" onchange="updAlloc()">
+              <option value="1">Single day</option>
+              <option value="7">Week ÷ 7</option>
+              <option value="30">Month ÷ 30</option>
+            </select>
+          </div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Labor hours</label><input type="number" id="a-hrs" placeholder="0" inputmode="decimal" oninput="updAlloc()"></div>
+          <div class="field"><label>Avg wage ($/hr)</label><input type="number" id="a-wage" inputmode="decimal" oninput="updAlloc()"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Where the money goes</div>
+        <div id="alloc-rows"></div>
+        <div class="takehome-box">
+          <span class="th-lbl">Your take-home</span>
+          <span class="th-val" id="alloc-th">$0.00</span>
+        </div>
+        <div id="alloc-tip"></div>
+      </div>
+      <div class="chart-wrap"><canvas id="alloc-chart"></canvas></div>
+      <div id="alloc-legend" style="display:flex;flex-wrap:wrap;gap:10px;font-size:12px;color:var(--ink-3);padding:0 2px 14px;font-weight:600;"></div>
+    </div>
+
+    <!-- ── HISTORY ── -->
+    <div class="page" id="page-hist">
+      <div class="metrics">
+        <div class="metric"><div class="metric-lbl">Total entries</div><div class="metric-val" id="h-cnt">0</div></div>
+        <div class="metric"><div class="metric-lbl">Avg daily rev</div><div class="metric-val" style="color:var(--sky)" id="h-avg">$0</div></div>
+        <div class="metric"><div class="metric-lbl">Best day</div><div class="metric-val" style="color:var(--sage-dk)" id="h-best">$0</div></div>
+        <div class="metric"><div class="metric-lbl">Profit margin</div><div class="metric-val" id="h-margin">0%</div></div>
+        <div class="metric full">
+          <div class="metric-lbl">Labor ratio — target 30–45%</div>
+          <div class="metric-val" style="color:var(--gold)" id="h-lr">0%</div>
+        </div>
+      </div>
+      <div class="chart-wrap" style="margin-bottom:16px;"><canvas id="hist-chart"></canvas></div>
+      <div id="hist-list"></div>
+      <div id="no-hist" class="empty-state">
+        <div class="empty-icon">🌿</div>
+        <p>Nothing logged yet</p>
+        <small>Head to Daily to log your first day</small>
+      </div>
+      <div style="text-align:center;margin-top:8px;padding-bottom:8px;">
+        <button class="btn btn-sm" style="color:var(--terra);background:var(--terra-lt);font-size:12px;" onclick="clearAll()">Clear all data</button>
+      </div>
+    </div>
+
+    <!-- ── SETUP ── -->
+    <div class="page" id="page-setup">
+
+      <div class="setup-group">Ohio taxes</div>
+      <div class="card">
+        <div class="row2">
+          <div class="field"><label>Federal income (%)</label><input type="number" id="s-fed" inputmode="decimal" oninput="saveS()"></div>
+          <div class="field"><label>Ohio state (%)</label><input type="number" id="s-state" inputmode="decimal" oninput="saveS()"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Self-employment (%)</label><input type="number" id="s-se" inputmode="decimal" oninput="saveS()"></div>
+          <div class="field"><label>Ohio CAT (% of gross)</label><input type="number" id="s-cat" inputmode="decimal" oninput="saveS()"></div>
+        </div>
+        <div style="font-size:12px;color:var(--ink-3);margin-top:2px;font-weight:600;">Set CAT to 0 if annual revenue is under $150k.</div>
+      </div>
+
+      <div class="setup-group">Labor costs</div>
+      <div class="card">
+        <div class="row2">
+          <div class="field"><label>Default wage ($/hr)</label><input type="number" id="s-wage" inputmode="decimal" oninput="saveS()"></div>
+          <div class="field"><label>Payroll tax (%)</label><input type="number" id="s-pt" inputmode="decimal" oninput="saveS()"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Workers comp (%)</label><input type="number" id="s-wc" inputmode="decimal" oninput="saveS()"></div>
+          <div class="field"><label>Ohio SUTA (%)</label><input type="number" id="s-suta" inputmode="decimal" oninput="saveS()"></div>
+        </div>
+        <div style="font-size:12px;color:var(--ink-3);margin-top:4px;font-weight:600;line-height:1.5;">Ohio lawn WC (class 0042) typically 6–12%.<br>New employer SUTA = 2.7%.</div>
+      </div>
+
+      <div class="setup-group">Equipment &amp; vehicles</div>
+      <div class="card">
+        <div class="row2">
+          <div class="field"><label>Equipment loan ($/mo)</label><input type="number" id="s-equip" inputmode="decimal" oninput="saveS()"></div>
+          <div class="field"><label>Vehicle loan ($/mo)</label><input type="number" id="s-veh" inputmode="decimal" oninput="saveS()"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Fuel ($/mo)</label><input type="number" id="s-fuel" inputmode="decimal" oninput="saveS()"></div>
+          <div class="field"><label>Maintenance ($/mo)</label><input type="number" id="s-maint" inputmode="decimal" oninput="saveS()"></div>
+        </div>
+      </div>
+
+      <div class="setup-group">Insurance</div>
+      <div class="card">
+        <div class="row2">
+          <div class="field"><label>General liability ($/mo)</label><input type="number" id="s-gli" inputmode="decimal" oninput="saveS()"></div>
+          <div class="field"><label>Commercial auto ($/mo)</label><input type="number" id="s-cauto" inputmode="decimal" oninput="saveS()"></div>
+        </div>
+      </div>
+
+      <div class="setup-group">Operations</div>
+      <div class="card">
+        <div class="row2">
+          <div class="field"><label>Supplies / materials</label><input type="number" id="s-supply" inputmode="decimal" oninput="saveS()"></div>
+          <div class="field"><label>Uniforms / PPE</label><input type="number" id="s-ppe" inputmode="decimal" oninput="saveS()"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Software / scheduling</label><input type="number" id="s-soft" inputmode="decimal" oninput="saveS()"></div>
+          <div class="field"><label>Marketing / ads</label><input type="number" id="s-mkt" inputmode="decimal" oninput="saveS()"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Storage / shop rent</label><input type="number" id="s-stor" inputmode="decimal" oninput="saveS()"></div>
+          <div class="field"><label>Dump / disposal</label><input type="number" id="s-dump" inputmode="decimal" oninput="saveS()"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Phone / comms</label><input type="number" id="s-phone" inputmode="decimal" oninput="saveS()"></div>
+          <div class="field"><label>Other</label><input type="number" id="s-other" inputmode="decimal" oninput="saveS()"></div>
+        </div>
+        <div class="oh-live">
+          <div><div style="font-size:11px;font-weight:700;letter-spacing:.06em;opacity:.7;">Monthly overhead</div><strong id="mo-oh">$0.00</strong></div>
+          <div><div style="font-size:11px;font-weight:700;letter-spacing:.06em;opacity:.7;">Daily obligation</div><strong id="day-oh">$0.00</strong></div>
+        </div>
+      </div>
+
+      <div class="setup-group">Savings targets</div>
+      <div class="card">
+        <div class="row2">
+          <div class="field"><label>Emergency fund (% rev)</label><input type="number" id="s-emerg" inputmode="decimal" oninput="saveS()"></div>
+          <div class="field"><label>Equipment fund (% rev)</label><input type="number" id="s-reinv" inputmode="decimal" oninput="saveS()"></div>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" onclick="saveS();showSaved()">Save all settings</button>
+      <div class="save-toast" id="save-toast">Settings saved!</div>
+    </div>
+
+  </div><!-- /content -->
+
+  <nav id="nav">
+    <button class="nav-btn active" onclick="goTo('daily',this)">
+      <div class="nav-dot"></div>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="18" rx="3"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      <span>Today</span>
+    </button>
+    <button class="nav-btn" onclick="goTo('alloc',this)">
+      <div class="nav-dot"></div>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2v10l6 3"/><circle cx="12" cy="12" r="10"/></svg>
+      <span>Allocate</span>
+    </button>
+    <button class="nav-btn" onclick="goTo('hist',this)">
+      <div class="nav-dot"></div>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      <span>History</span>
+    </button>
+    <button class="nav-btn" onclick="goTo('setup',this)">
+      <div class="nav-dot"></div>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <span>Setup</span>
+    </button>
+  </nav>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+// ── State ──────────────────────────────────────────────────────────────
+let entries = JSON.parse(localStorage.getItem('mf_entries')||'[]');
+let S = JSON.parse(localStorage.getItem('mf_settings')||'null') || {
+  fed:22, state:3.5, se:15.3, cat:0.26,
+  wage:15, pt:7.65, wc:8.5, suta:2.7,
+  equip:0, veh:0, fuel:0, maint:0,
+  gli:0, cauto:0,
+  supply:0, ppe:0, soft:0, mkt:0,
+  stor:0, dump:0, phone:0, other:0,
+  emerg:5, reinv:5
+};
+let acInst=null, hcInst=null;
+
+const OH_KEYS = ['equip','veh','fuel','maint','gli','cauto','supply','ppe','soft','mkt','stor','dump','phone','other'];
+const S_KEYS  = ['fed','state','se','cat','wage','pt','wc','suta','emerg','reinv',...OH_KEYS];
+
+const fmt  = n => '$' + Math.max(0,n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');
+const fmtS = n => (n>=0?'+$':'-$') + Math.abs(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');
+const g    = id => document.getElementById(id);
+
+// ── Navigation ──────────────────────────────────────────────────────────
+function goTo(name, btn) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  g('page-'+name).classList.add('active');
+  btn.classList.add('active');
+  g('content').scrollTop = 0;
+  if(name==='hist')  renderHist();
+  if(name==='alloc'){ g('a-wage').value=S.wage; updAlloc(); }
+  if(name==='daily') updMetrics();
+}
+
+// ── Init header ─────────────────────────────────────────────────────────
+function initHeader(){
+  const now = new Date();
+  g('month-pill').textContent = now.toLocaleString('default',{month:'long',year:'numeric'});
+}
+
+// ── Settings ────────────────────────────────────────────────────────────
+function loadS(){
+  S_KEYS.forEach(k=>{ const el=g('s-'+k); if(el) el.value=S[k]; });
+  updOH();
+}
+function saveS(){
+  S_KEYS.forEach(k=>{ const el=g('s-'+k); if(el) S[k]=parseFloat(el.value)||0; });
+  localStorage.setItem('mf_settings',JSON.stringify(S));
+  updOH();
+}
+function showSaved(){ const m=g('save-toast'); m.style.display='block'; setTimeout(()=>m.style.display='none',2000); }
+function updOH(){
+  const mo = OH_KEYS.reduce((s,k)=>s+S[k],0);
+  g('mo-oh').textContent = fmt(mo);
+  g('day-oh').textContent = fmt(mo/30);
+}
+const monthlyOH = () => OH_KEYS.reduce((s,k)=>s+S[k],0);
+const dailyOH   = () => monthlyOH()/30;
+
+// ── Labor calc ──────────────────────────────────────────────────────────
+function calcLabor(emps){
+  return emps.reduce((sum,e)=>{
+    const w = e.hours * e.wage;
+    return sum + w*(1 + S.pt/100 + S.wc/100 + S.suta/100);
+  },0);
+}
+
+// ── Allocation calc ─────────────────────────────────────────────────────
+function calcAlloc(rev, emps){
+  const oh       = dailyOH();
+  const labor    = calcLabor(emps);
+  const catAmt   = rev * S.cat/100;
+  const emergAmt = rev * S.emerg/100;
+  const reinvAmt = rev * S.reinv/100;
+  const taxable  = Math.max(0, rev - oh - labor - catAmt - emergAmt - reinvAmt);
+  const tax      = taxable * (S.fed + S.state + S.se)/100;
+  const takehome = Math.max(0, taxable - tax);
+  return {oh, labor, catAmt, emergAmt, reinvAmt, tax, takehome, rev};
+}
+
+const ALLOC_DEF = [
+  {key:'labor',    label:'Labor + payroll + WC + SUTA', sub:()=>`Wages · ${S.pt}% payroll · ${S.wc}% WC · ${S.suta}% SUTA`, col:'#c49a3a'},
+  {key:'oh',       label:'Daily overhead',              sub:()=>'Insurance · equipment · fuel · ops',                col:'#c46b3a'},
+  {key:'tax',      label:'Income tax reserve',          sub:()=>`${(S.fed+S.state+S.se).toFixed(1)}% of net profit`, col:'#7a5580'},
+  {key:'emergAmt', label:'Emergency fund',              sub:()=>`${S.emerg}% of revenue`,                            col:'#5b8fa8'},
+  {key:'reinvAmt', label:'Equipment replacement',       sub:()=>`${S.reinv}% of revenue`,                            col:'#7a9e7e'},
+  {key:'catAmt',   label:'Ohio CAT tax',                sub:()=>`${S.cat}% of gross revenue`,                        col:'#a06850'},
+];
+
+function renderAllocRows(alloc, container){
+  const r = alloc.rev || 1;
+  container.innerHTML = ALLOC_DEF.map(it=>{
+    const amt = alloc[it.key]||0;
+    const pct = r>0?(amt/r*100):0;
+    return `<div class="alloc-item">
+      <div class="alloc-left">
+        <div class="alloc-lbl">${it.label}</div>
+        <div class="alloc-sub">${it.sub()}</div>
+        <div class="alloc-track"><div class="alloc-fill" style="width:${Math.min(100,pct).toFixed(1)}%;background:${it.col};"></div></div>
+      </div>
+      <div class="alloc-right">
+        <div class="alloc-num">${fmt(amt)}</div>
+        <div class="alloc-pct">${pct.toFixed(1)}%</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function tipMsg(alloc){
+  if(!alloc.rev) return '';
+  const lp = alloc.labor/alloc.rev*100;
+  const mp = alloc.takehome/alloc.rev*100;
+  if(lp>55) return `<div class="warn-box">Labor is ${lp.toFixed(0)}% of revenue — target is 30–45%. Consider reviewing your job pricing.</div>`;
+  if(mp<10)  return `<div class="warn-box">Take-home is under 10%. Your overhead or labor costs may be outpacing your pricing.</div>`;
+  if(mp>30)  return `<div class="tip-box">Great margin of ${mp.toFixed(0)}%! Consider putting extra toward your equipment replacement fund.</div>`;
+  return `<div class="tip-box">Margin of ${mp.toFixed(0)}% — on track for a healthy business.</div>`;
+}
+
+// ── Workers ─────────────────────────────────────────────────────────────
+function addWorker(name='',hours='',wage=''){
+  const div = document.createElement('div');
+  div.className = 'worker-row';
+  div.innerHTML = `
+    <input type="text" placeholder="Name" value="${name}">
+    <input type="number" placeholder="0" value="${hours}" inputmode="decimal">
+    <input type="number" placeholder="${S.wage}" value="${wage}" inputmode="decimal">
+    <button class="rem-btn" onclick="this.closest('.worker-row').remove()">&#x2715;</button>`;
+  g('worker-list').appendChild(div);
+}
+
+function getWorkers(){
+  return [...document.querySelectorAll('#worker-list .worker-row')].map(r=>{
+    const ins=r.querySelectorAll('input');
+    return {name:ins[0].value||'Worker', hours:parseFloat(ins[1].value)||0, wage:parseFloat(ins[2].value)||S.wage};
+  });
+}
+
+// ── Preview & save ───────────────────────────────────────────────────────
+function previewAlloc(){
+  const rev=parseFloat(g('e-rev').value)||0;
+  if(!rev){alert('Enter today\'s revenue first.');return;}
+  const alloc=calcAlloc(rev,getWorkers());
+  renderAllocRows(alloc, g('preview-rows'));
+  g('preview-th').textContent=fmt(alloc.takehome);
+  g('preview-tip').innerHTML=tipMsg(alloc);
+  g('preview-card').style.display='block';
+  setTimeout(()=>g('preview-card').scrollIntoView({behavior:'smooth',block:'start'}),50);
+}
+
+function saveEntry(){
+  const date=g('e-date').value;
+  const rev=parseFloat(g('e-rev').value);
+  if(!date||!rev){alert('Enter a date and revenue amount.');return;}
+  entries.push({date,revenue:rev,notes:g('e-notes').value,employees:getWorkers(),S:{...S}});
+  entries.sort((a,b)=>a.date.localeCompare(b.date));
+  localStorage.setItem('mf_entries',JSON.stringify(entries));
+  g('e-rev').value=''; g('e-notes').value='';
+  g('worker-list').innerHTML='';
+  g('preview-card').style.display='none';
+  addWorker(); updMetrics();
+  alert('Day saved!');
+}
+
+// ── Metrics ──────────────────────────────────────────────────────────────
+function calcForEntry(e){
+  const s=e.S||S;
+  const oh=OH_KEYS.reduce((sum,k)=>sum+(s[k]||0),0)/30;
+  const labor=(e.employees||[]).reduce((sum,emp)=>{
+    const w=emp.hours*emp.wage;
+    return sum+w*(1+(s.pt||7.65)/100+(s.wc||8.5)/100+(s.suta||2.7)/100);
+  },0);
+  const catAmt=e.revenue*(s.cat||0.26)/100;
+  const emergAmt=e.revenue*(s.emerg||5)/100;
+  const reinvAmt=e.revenue*(s.reinv||5)/100;
+  const taxable=Math.max(0,e.revenue-oh-labor-catAmt-emergAmt-reinvAmt);
+  const tax=taxable*((s.fed||22)+(s.state||3.5)+(s.se||15.3))/100;
+  const takehome=Math.max(0,taxable-tax);
+  return {oh,labor,catAmt,emergAmt,reinvAmt,tax,takehome};
+}
+
+function updMetrics(){
+  const now=new Date();
+  const mk=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+  const mes=entries.filter(e=>e.date.startsWith(mk));
+  let rev=0,labor=0,oh=0,tax=0;
+  mes.forEach(e=>{const a=calcForEntry(e);rev+=e.revenue;labor+=a.labor;oh+=a.oh;tax+=a.tax+a.catAmt;});
+  const net=rev-labor-oh-tax;
+  g('m-rev').textContent=fmt(rev);
+  g('m-labor').textContent=fmt(labor);
+  g('m-oh').textContent=fmt(oh);
+  g('m-tax').textContent=fmt(tax);
+  const ne=g('m-net');
+  ne.textContent=fmtS(net);
+  ne.style.color=net>=0?'var(--sage-dk)':'var(--terra)';
+}
+
+// ── Allocation page ───────────────────────────────────────────────────────
+function updAlloc(){
+  const rev=parseFloat(g('a-rev').value)||0;
+  const period=parseFloat(g('a-period').value)||1;
+  const hrs=parseFloat(g('a-hrs').value)||0;
+  const wage=parseFloat(g('a-wage').value)||S.wage;
+  const dr=rev/period;
+  const emps=hrs>0?[{hours:hrs,wage}]:[];
+  const alloc=calcAlloc(dr,emps);
+  renderAllocRows(alloc,g('alloc-rows'));
+  g('alloc-th').textContent=fmt(alloc.takehome);
+  g('alloc-tip').innerHTML=tipMsg(alloc);
+  drawAllocChart(alloc);
+}
+
+function drawAllocChart(alloc){
+  if(acInst)acInst.destroy();
+  const data=ALLOC_DEF.map(it=>alloc[it.key]||0);
+  const cols=ALLOC_DEF.map(it=>it.col);
+  const labs=['Labor+WC','Overhead','Tax','Emergency','Equip fund','CAT'];
+  acInst=new Chart(g('alloc-chart'),{
+    type:'doughnut',
+    data:{labels:labs,datasets:[{data,backgroundColor:cols,borderWidth:3,borderColor:'#faf6f0'}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'60%',
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.label}: ${fmt(c.raw)} (${alloc.rev>0?(c.raw/alloc.rev*100).toFixed(1):'0'}%)`}}}}
+  });
+  g('alloc-legend').innerHTML=labs.map((l,i)=>`<span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:3px;background:${cols[i]};display:inline-block;"></span>${l}</span>`).join('');
+}
+
+// ── History ───────────────────────────────────────────────────────────────
+function renderHist(){
+  const list=g('hist-list');
+  g('no-hist').style.display=entries.length?'none':'block';
+  let tRev=0,tProfit=0,tLabor=0;
+  const chartD=[];
+  list.innerHTML=entries.slice().reverse().map(e=>{
+    const a=calcForEntry(e);
+    const profit=e.revenue-a.oh-a.labor-a.tax-a.catAmt;
+    const margin=e.revenue>0?(profit/e.revenue*100):0;
+    tRev+=e.revenue; tProfit+=profit; tLabor+=a.labor;
+    chartD.push({date:e.date,rev:e.revenue,profit:Math.max(0,profit)});
+    const bc=margin>=20?'b-ok':margin>=0?'b-warn':'b-loss';
+    const bl=margin>=20?'Healthy':margin>=0?'Tight':'Loss';
+    const dateStr=new Date(e.date+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+    return `<div class="hist-entry">
+      <div class="hist-top">
+        <div>
+          <div class="hist-date">${dateStr}</div>
+          ${e.notes?`<div class="hist-notes">${e.notes}</div>`:''}
+        </div>
+        <div>
+          <div class="hist-rev">${fmt(e.revenue)}</div>
+          <div class="hist-pills"><span class="badge ${bc}">${bl}</span></div>
+        </div>
+      </div>
+      <div class="hist-stats">
+        <div class="hist-stat">Labor+WC<strong style="color:var(--gold)">${fmt(a.labor)}</strong></div>
+        <div class="hist-stat">Overhead<strong style="color:var(--terra)">${fmt(a.oh)}</strong></div>
+        <div class="hist-stat">Profit<strong style="color:${profit>=0?'var(--sage-dk)':'var(--terra)'}">${fmtS(profit)}</strong></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  const avg=entries.length?tRev/entries.length:0;
+  const best=entries.length?Math.max(...entries.map(e=>e.revenue)):0;
+  const margin=tRev>0?(tProfit/tRev*100):0;
+  const lr=tRev>0?(tLabor/tRev*100):0;
+  g('h-cnt').textContent=entries.length;
+  g('h-avg').textContent=fmt(avg);
+  g('h-best').textContent=fmt(best);
+  const me=g('h-margin');
+  me.textContent=margin.toFixed(1)+'%';
+  me.style.color=margin>=20?'var(--sage-dk)':margin>=0?'var(--gold)':'var(--terra)';
+  g('h-lr').textContent=lr.toFixed(1)+'%';
+
+  if(chartD.length>=2){
+    const d=chartD.slice(-14).reverse();
+    if(hcInst)hcInst.destroy();
+    hcInst=new Chart(g('hist-chart'),{
+      type:'bar',
+      data:{
+        labels:d.map(x=>x.date.slice(5)),
+        datasets:[
+          {label:'Revenue',data:d.map(x=>x.rev),backgroundColor:'#5b8fa855',borderColor:'#5b8fa8',borderWidth:1.5,borderRadius:4},
+          {label:'Profit', data:d.map(x=>x.profit),backgroundColor:'#7a9e7e55',borderColor:'#7a9e7e',borderWidth:1.5,borderRadius:4}
+        ]
+      },
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false}},
+        scales:{
+          x:{ticks:{font:{size:10,family:'Nunito'},autoSkip:false,maxRotation:45},grid:{display:false}},
+          y:{ticks:{callback:v=>'$'+v,font:{size:10}},grid:{color:'rgba(0,0,0,.04)'}}
+        }
+      }
+    });
+  }
+}
+
+function clearAll(){
+  if(confirm('Delete all entries? This cannot be undone.')){
+    entries=[];
+    localStorage.removeItem('mf_entries');
+    renderHist(); updMetrics();
+  }
+}
+
+// ── Boot ──────────────────────────────────────────────────────────────────
+g('e-date').value = new Date().toISOString().split('T')[0];
+initHeader();
+loadS();
+updMetrics();
+addWorker();
+
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+</script>
+</body>
+</html>
